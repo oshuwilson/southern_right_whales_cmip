@@ -13,7 +13,7 @@ setwd("~/OneDrive - University of Southampton/Documents/Southern Right Whales")
 rm(list=ls())
 
 #specify region
-this.pop <- "NZ"
+this.pop <- "OZ"
 
 #read in tracks and buffers
 tracks <- read.csv(paste0("data/", this.pop, "_SRW_SSM_track_data.csv"))
@@ -136,3 +136,4 @@ write.csv(tracks,
 
 write.csv(buffers, 
           file=paste0("output/extraction/", this.pop, "/buffers.csv"))
+

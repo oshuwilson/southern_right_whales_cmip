@@ -12,10 +12,11 @@ setwd("~/OneDrive - University of Southampton/Documents/Southern Right Whales")
   library(rnaturalearthhires)
   library(amt)
   library(ggplot2)
+  library(tictoc)
 }
 
 #define population
-this.pop <- "OZ"
+this.pop <- "NZ"
 
 #read in tracks for this population
 tracks <- read.csv(paste0("data/", this.pop, "_SRW_SSM_track_data.csv"))
@@ -90,26 +91,40 @@ tracks <- spatiotemp_check(occ.data = tracks,
 oceans <- ne_download(scale = "medium", category = "physical", type = "ocean", returnclass = "sf")
 
 #run buffer creation script
+allbuff <- NULL
+
+tic()
+for(i in 1:nrow(tracks)){
+  
+  tracks_test <- tracks[i,]
+  
 suppressMessages( #suppress message - trust me you don't want messages
-  buffers <- spatiotemp_pseudoabs(occ.data = tracks,
+  buffers <- spatiotemp_pseudoabs(occ.data = tracks_test,
                                   spatial.method = "buffer",
                                   spatial.ext = oceans, 
                                   temporal.method = "buffer",
                                   spatial.buffer = c(12000, max.buffer), #12000 ensures that pseudoabs falls in a different cell
                                   temporal.buffer = 0,
-                                  n.pseudoabs = nrow(tracks),
+                                  n.pseudoabs = 1,
                                   prj = "+proj=longlat +datum=WGS84"))
 
+allbuff <- rbind(allbuff, buffers)  
+
+print(i)
+}
+toc()
+
+allbuff$id <- tracks$id
+allbuff$date <- tracks$date
+
 #plot
-plot(vect(buffers[, c("x", "y")],
+plot(vect(allbuff[, c("x", "y")],
                   geom = c("x", "y"),
                   crs = "+proj=longlat +datum=WGS84"),
           pch = ".", col = "red") 
 plot(tracks_terra, col="black", pch=".", add=T)
 
-# 5. Export buffers
-buffers$date <- as.Date(with(buffers, paste(year, month, day, sep="-")), "%Y-%m-%d")
-buffers <- select(buffers, x, y, date)
-
+# 5. Export allbuff
 #only when happy export
-write.csv(buffers, paste0("output/buffers/", this.pop, "_buffers.csv"))
+write.csv(allbuff, paste0("output/buffers/", this.pop, "_buffers.csv"))
+
