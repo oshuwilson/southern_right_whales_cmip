@@ -68,7 +68,30 @@ max.buffer <- as.numeric(quantile(trks3$sl_, probs=0.75))
 #remove amt variables
 rm(trks, trks2, trks3)
 
+# 1. Create MCP Mask
+#convert to sf
+tracks_sf <- st_as_sf(tracks_terra)
 
+#MCH
+mch_sf <- st_convex_hull(st_union(tracks_sf))
+
+plot(mch_sf, add=T)
+
+e <- ext(tracks_terra)
+crop_coast <- crop(coast_v,e)
+crop_coast <- st_as_sf(crop_coast)
+plot(crop_coast, add=T)
+
+#gets rid of self-intersections
+coast_buff <- st_buffer(crop_coast,0)
+
+mch_masked <- st_difference(mch_sf, st_union(coast_buff))
+
+plot(mch_masked)
+plot(tracks_sf, pch=".", add=T, col = "black")
+
+#cleanup
+rm(mch_sf, tracks, tracks_terra, crop_coast, coast_buff)
 
 # 2. Create Buffer Samples
 
