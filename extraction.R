@@ -13,7 +13,7 @@ setwd("~/OneDrive - University of Southampton/Documents/Southern Right Whales")
 rm(list=ls())
 
 #specify region
-this.pop <- "OZ"
+this.pop <- "NZ"
 
 #read in tracks and background
 tracks <- read.csv(paste0("data/", this.pop, "_SRW_SSM_track_data.csv"))
@@ -21,7 +21,7 @@ background <- read.csv(paste0("output/background/", this.pop, "_background.csv")
 
 #format for extraction - keep relevant columns
 tracks <- tracks %>% select(id, date, lon, lat)
-background <- background %>% select(-X)
+background <- background %>% select(-X) %>% filter(x<0)
 
 #format
 tracks <- tracks %>% rename(x = lon, y = lat)
@@ -137,5 +137,5 @@ write.csv(tracks,
           file=paste0("output/extraction/", this.pop, "/", this.pop, "_presences_extracted.csv"))
 
 write.csv(background, 
-          file=paste0("output/extraction/", this.pop, "/", this.pop, "_background_extracted.csv"))
+          file=paste0("output/extraction/", this.pop, "/", this.pop, "_background_extracted_2.csv"))
 

@@ -15,7 +15,7 @@ setwd("~/OneDrive - University of Southampton/Documents/Southern Right Whales")
 }
 
 #define population
-this.pop <- "OZ"
+this.pop <- "ARG"
 
 #read in tracks for this population
 tracks <- read.csv(paste0("data/", this.pop, "_SRW_SSM_track_data.csv"))
@@ -28,7 +28,15 @@ oceans <- vect(oceans)
 tracks_terra <- vect(tracks,
                      geom = c("lon", "lat"),
                      crs = "epsg:4326")
-plot(tracks_terra, pch=".")
+
+#project oceans and tracks_terra
+e <- ext(-180, 180, -86, -25)
+oceans <- crop(oceans, e)
+oceans <- project(oceans, "EPSG:6932")
+plot(oceans)
+
+tracks_terra <- project(tracks_terra, "EPSG:6932")
+plot(tracks_terra, pch=".", add=T)
 
 #only keep necessary variables
 tracks <- tracks %>% select(id, date, lon, lat)
@@ -44,11 +52,20 @@ plot(mch)
 mch_buff <- buffer(mch, width=84000)
 plot(mch_buff, add=T)
 
-mask <- terra::intersect(mch_buff, oceans)
+mch_buff <- st_as_sf(mch_buff)
+oceans <- st_as_sf(oceans)
+oceans <- st_buffer(oceans,0)
+mask <- st_intersection(mch_buff, oceans$geometry)
+mask <- st_buffer(mask, 0)
 plot(mask)
 
-mask <- st_as_sf(mask)
+mask <- st_transform(mask, 4326)
 plot(mask)
+#alternative for non-projection method - can cause fatal error
+# mask <- terra::intersect(mch_buff, oceans)
+# plot(mask)
+# mask <- st_as_sf(mask)
+# plot(mask)
 
 # 2. Create Background Samples
 
@@ -100,6 +117,7 @@ plot(vect(allback[, c("x", "y")],
           geom = c("x", "y"),
           crs = "+proj=longlat +datum=WGS84"),
      pch = ".", col = "red") 
+tracks_terra <- project(tracks_terra, "EPSG:4326")
 plot(tracks_terra, col="black", pch=".", add=T)
 
 # 5. Export allbuff
